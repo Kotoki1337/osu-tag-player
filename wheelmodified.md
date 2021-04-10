@@ -6,3 +6,5 @@
 	[https://github.com/Mempler/rplpa/issues/2](https://github.com/Mempler/rplpa/issues/2) 已merge
 - 如何让 go walk 窗口大小固定（SetFixedSize）
 	[https://studygolang.com/topics/1150](https://studygolang.com/topics/1150)
+- 2021 年 2 月份，新的 pp 算法修改
+	[https://github.com/flesnuk/oppai5/pull/6](https://github.com/flesnuk/oppai5/pull/6) 已merge

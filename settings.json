@@ -5,7 +5,7 @@
 	},
 	"VSplayer": {
 		"PlayerInfo": {
-			"Players": 3,
+			"Players": 1,
 			"SpecifiedPlayers": false,
 			"SpecifiedLine": "6",
 			"SpecifiedColor": "WhiteCat:255,255,255|YakumoYukari:0,0,0"
@@ -46,8 +46,8 @@
 			"ShowHitCircleNumber": true
 		},
 		"MapInfo": {
-			"Title": "Kurikaeshi Hitotsubu",
-			"Difficulty": "Hitotsubu"
+			"Title": "Graces of Heaven",
+			"Difficulty": "Debug"
 		},
 		"Mods": {
 			"EnableDT": false,
@@ -67,7 +67,7 @@
 			"ReplayDir": "replays\\",
 			"CacheDir": "cache\\",
 			"UseCacheSystem": true,
-			"ReplayDebug": false
+			"ReplayDebug": true
 		},
 		"ErrorFix": {
 			"EnableErrorFix": false,
