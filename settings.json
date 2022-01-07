@@ -5,7 +5,7 @@
 	},
 	"VSplayer": {
 		"PlayerInfo": {
-			"Players": 1,
+			"Players": 17,
 			"SpecifiedPlayers": false,
 			"SpecifiedLine": "6",
 			"SpecifiedColor": "WhiteCat:255,255,255|YakumoYukari:0,0,0"
@@ -18,7 +18,7 @@
 			"ShowMouse2": false,
 			"ShowRealTimePP": true,
 			"RealTimePPGap": 800,
-			"ShowRealTimeUR": true,
+			"ShowRealTimeUR": false,
 			"ShowPPAndURRank": false,
 			"Rank1Highlight": false,
 			"HighlightMult": 1.3,
@@ -26,14 +26,14 @@
 		},
 		"RecordInfoUI": {
 			"Recorder": "wasupandceacar",
-			"RecordTime": "2019.2.21",
+			"RecordTime": "2022.1.16",
 			"RecordBaseX": 1019,
 			"RecordBaseY": 35,
 			"RecordBaseSize": 18,
 			"RecordAlpha": 0.4
 		},
 		"DiffInfoUI": {
-			"ShowDiffInfo": false,
+			"ShowDiffInfo": true,
 			"DiffBaseX": 1049,
 			"DiffBaseY": 678,
 			"DiffBaseSize": 18,
@@ -46,8 +46,8 @@
 			"ShowHitCircleNumber": true
 		},
 		"MapInfo": {
-			"Title": "Graces of Heaven",
-			"Difficulty": "Debug"
+			"Title": "Kurikaeshi Hitotsubu",
+			"Difficulty": "Hitotsubu"
 		},
 		"Mods": {
 			"EnableDT": false,
@@ -57,7 +57,7 @@
 			"EnableHD": false
 		},
 		"Knockout": {
-			"EnableKnockout": true,
+			"EnableKnockout": false,
 			"ShowTrueMiss": false,
 			"PlayerFadeTime": 1500,
 			"SameTimeOffset": 12,
@@ -67,7 +67,7 @@
 			"ReplayDir": "replays\\",
 			"CacheDir": "cache\\",
 			"UseCacheSystem": true,
-			"ReplayDebug": true
+			"ReplayDebug": false
 		},
 		"ErrorFix": {
 			"EnableErrorFix": false,
@@ -120,7 +120,7 @@
 		"EnableCustomTrailGlowOffset": true,
 		"TrailGlowOffset": -36,
 		"ScaleToCS": false,
-		"CursorSize": 8,
+		"CursorSize": 5,
 		"ScaleToTheBeat": false,
 		"ShowCursorsOnBreaks": true,
 		"BounceOnEdges": false,
@@ -154,8 +154,8 @@
 		"ScaleToTheBeat": false,
 		"SliderLOD": 30,
 		"SliderPathLOD": 50,
-		"SliderSnakeIn": true,
-		"SliderSnakeOut": true,
+		"SliderSnakeIn": false,
+		"SliderSnakeOut": false,
 		"SliderMerge": false,
 		"DrawFollowPoints": true,
 		"WhiteFollowPoints": true,
