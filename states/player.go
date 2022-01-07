@@ -1330,6 +1330,9 @@ func (pl *Player) Draw(_ float64) {
 		if pl.controller[k].GetMods()&MOD_SO > 0 {
 			mods += "SO"
 		}
+		if pl.controller[k].GetMods()&MOD_RX > 0 {
+			mods += "RX"
+		}
 		if mods != "+" {
 			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
 			lastPos[k] = pl.font.DrawAndGetLastPosition(pl.batch, lastPos[k]+pl.modoffset, fontY-gapY, pl.fontsize, mods)
