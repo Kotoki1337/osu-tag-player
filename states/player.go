@@ -1673,16 +1673,57 @@ func (pl *Player) Draw(_ float64) {
 				pl.objindex += 1
 			}
 		}
+		pp := pl.difficulties[pl.objindex].PP
 		diff := pl.difficulties[pl.objindex].Diff
+		var aimpp float64
+		var speedpp float64
+		var accpp float64
+		var totalpp float64
 		var aim float64
 		var speed float64
 		var total float64
 		if pl.objindex == 0 || pl.progressMs > pl.bMap.HitObjects[len(pl.bMap.HitObjects)-1].GetBasicData().JudgeTime {
+			if pl.objindex == 0 {
+				aimpp = 0.
+				speedpp = 0.
+				accpp = 0.
+				totalpp = 0.
+			} else {
+				aimpp = pp.Aim
+				speedpp = pp.Speed
+				accpp = pp.Acc
+				totalpp = pp.Total
+			}
 			aim = diff.Aim
 			speed = diff.Speed
 			total = diff.Total
 		} else {
+			beforepp := pl.difficulties[pl.objindex-1].PP
 			beforediff := pl.difficulties[pl.objindex-1].Diff
+			aimpp = score.CalculateRealtimeValue(
+				beforepp.Aim,
+				pp.Aim,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			speedpp = score.CalculateRealtimeValue(
+				beforepp.Speed,
+				pp.Speed,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			accpp = score.CalculateRealtimeValue(
+				beforepp.Acc,
+				pp.Acc,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			totalpp = score.CalculateRealtimeValue(
+				beforepp.Total,
+				pp.Total,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
 			aim = score.CalculateRealtimeValue(
 				beforediff.Aim,
 				diff.Aim,
@@ -1705,6 +1746,12 @@ func (pl *Player) Draw(_ float64) {
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY, pl.diffbasesize, "Aim Stars : "+fmt.Sprintf("%.4f", aim))
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY, pl.diffbasesize, "Speed Stars : "+fmt.Sprintf("%.4f", speed))
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*2, pl.diffbasesize, "Total Stars : "+fmt.Sprintf("%.4f", total))
+
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*4, pl.diffbasesize, "Aim pp : "+fmt.Sprintf("%.4f", aimpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*5, pl.diffbasesize, "Speed pp : "+fmt.Sprintf("%.4f", speedpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*6, pl.diffbasesize, "Acc pp : "+fmt.Sprintf("%.4f", accpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*7, pl.diffbasesize, "Total pp : "+fmt.Sprintf("%.4f", totalpp)+" pp")
+
 		pl.batch.End()
 	}
 
