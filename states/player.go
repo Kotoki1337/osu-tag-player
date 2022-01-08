@@ -1752,8 +1752,10 @@ func (pl *Player) Draw(_ float64) {
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*6, pl.diffbasesize, "Speed pp : "+fmt.Sprintf("%.2f", speedpp)+" pp")
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*7, pl.diffbasesize, "Acc pp : "+fmt.Sprintf("%.2f", accpp)+" pp")
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*8, pl.diffbasesize, "Total pp : "+fmt.Sprintf("%.2f", totalpp)+" pp")
-        pl.font.Draw(pl.batch, 2.5, 0, 64, fmt.Sprintf("%.dx", audio.Globalcombo))
 
+		if  audio.Globalcombo == 0 { } else {
+			pl.font.Draw(pl.batch, 2.5, 0, 64, fmt.Sprintf("%.dx", audio.Globalcombo))
+		}
 		pl.batch.End()
 	}
 
