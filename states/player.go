@@ -1743,14 +1743,16 @@ func (pl *Player) Draw(_ float64) {
 				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
 				pl.progressMsF)
 		}
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY, pl.diffbasesize, "Aim Stars : "+fmt.Sprintf("%.4f", aim))
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY, pl.diffbasesize, "Speed Stars : "+fmt.Sprintf("%.4f", speed))
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*2, pl.diffbasesize, "Total Stars : "+fmt.Sprintf("%.4f", total))
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY, pl.diffbasesize, "Aim Stars : "+fmt.Sprintf("%.2f", aim))
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY, pl.diffbasesize, "Speed Stars : "+fmt.Sprintf("%.2f", speed))
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*2, pl.diffbasesize, "Total Stars : "+fmt.Sprintf("%.2f", total))
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*3, pl.diffbasesize, "Online Stars : "+fmt.Sprintf("79.58"))
 
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*4, pl.diffbasesize, "Aim pp : "+fmt.Sprintf("%.4f", aimpp)+" pp")
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*5, pl.diffbasesize, "Speed pp : "+fmt.Sprintf("%.4f", speedpp)+" pp")
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*6, pl.diffbasesize, "Acc pp : "+fmt.Sprintf("%.4f", accpp)+" pp")
-		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*7, pl.diffbasesize, "Total pp : "+fmt.Sprintf("%.4f", totalpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*5, pl.diffbasesize, "Aim pp : "+fmt.Sprintf("%.2f", aimpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*6, pl.diffbasesize, "Speed pp : "+fmt.Sprintf("%.2f", speedpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*7, pl.diffbasesize, "Acc pp : "+fmt.Sprintf("%.2f", accpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*8, pl.diffbasesize, "Total pp : "+fmt.Sprintf("%.2f", totalpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*9, pl.diffbasesize, "Max Combo : x"+fmt.Sprintf("%.d", audio.Globalcombo))
 
 		pl.batch.End()
 	}

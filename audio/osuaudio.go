@@ -18,6 +18,8 @@ var sets = map[string]int{
 	"drum":   3,
 }
 
+var Globalcombo = 0
+
 var hitsounds = map[string]int{
 	"hitnormal":  1,
 	"hitwhistle": 2,
@@ -65,6 +67,8 @@ func PlaySample(sampleSet, additionSet, hitsound, index int, volume float64) {
 }
 
 func playSample(sampleSet int, hitsoundIndex, index int, volume float64) {
+	Globalcombo += 1
+
 	if settings.Audio.IgnoreBeatmapSampleVolume {
 		volume = 1.0
 	}
