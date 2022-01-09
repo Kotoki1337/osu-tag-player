@@ -469,6 +469,173 @@ func ParseHits(mapname string, pr *rplpa.Replay, errors []Error, addCSoffset flo
 	return objectResults, totalResults, allRight, CSoffset
 }
 
+func ParseHitsPseudo(mapname string, pr *rplpa.Replay, errors []Error, addCSoffset float64) (objectResults []ObjectResult, totalResults []TotalResult, allRight bool, CSoffset float64) {
+	// 加载replay
+	mods := pr.Mods
+
+	// 根据replay的mods加载map
+	b := ParseMapWithMods(mapname, mods&MOD_HR > 0, mods&MOD_EZ > 0)
+
+	// 计数
+	count300 := 0
+	count100 := 0
+	count50 := 0
+	countMiss := 0
+
+	// 判定数组
+	var totalhits []int64
+	// maxcombo
+	maxcombo := 0
+	nowcombo := 0
+
+	// 击打误差数组
+	var hiterrors []int64
+
+	// CS判定偏差数组
+	var CSerrors []float64
+
+	for k := 0; k < len(b.HitObjects); k++ {
+		//for k := 0; k < 1; k++ {
+		//	log.Println("Object", k+1)
+		obj := b.HitObjects[k]
+		if obj != nil {
+			// 滑条
+			if o, ok := obj.(*objects.Slider); ok {
+				//log.Println("Slider info", o.GetBasicData().StartTime, o.GetBasicData().StartPos, o.GetBasicData().EndTime, o.GetBasicData().EndTime - o.TailJudgeOffset, o.TailJudgeOffset, o.TailJudgePoint, o.ScorePoints)
+				// 统计滑条的hit数，是否断连
+				requirehits := 0
+				realhits := 0
+				isBreak := false
+				// 啊对对对
+				requirehits += 1
+				realhits += 1
+				nowcombo += 1
+				maxcombo = int(math.Max(float64(maxcombo), float64(nowcombo)))
+
+				for i, _ := range o.ScorePoints {
+					i += 0
+					// 啊对对对
+					requirehits += 1
+					realhits += 1
+					nowcombo += 1
+					maxcombo = int(math.Max(float64(maxcombo), float64(nowcombo)))
+				}
+				// 判断滑条尾
+				// 啊对对对
+				requirehits += 1
+				realhits += 1
+				nowcombo += 1
+
+				maxcombo = int(math.Max(float64(maxcombo), float64(nowcombo)))
+				// 滑条总体情况
+				sliderhitresult := judgeSlider(requirehits, realhits)
+				switch sliderhitresult {
+				case Hit300:
+					//log.Println("Slider count as 300", requirehits, realhits, "Object", k+1)
+					count300 += 1
+					totalhits = append(totalhits, 300)
+					realhits += 1
+					break
+				case Hit100:
+					log.Println("Slider count as 100", requirehits, realhits, "Object", k+1)
+					count100 += 1
+					totalhits = append(totalhits, 100)
+					realhits += 1
+					break
+				case Hit50:
+					log.Println("Slider count as 50", requirehits, realhits, "Object", k+1)
+					count50 += 1
+					totalhits = append(totalhits, 50)
+					realhits += 1
+					break
+				case HitMiss:
+					log.Println("Slider count as Miss", requirehits, realhits, "Object", k+1)
+					countMiss += 1
+					totalhits = append(totalhits, 0)
+					isBreak = true
+					break
+				}
+				if isBreak {
+					log.Println("Slider breaks")
+				} else {
+					//log.Println("Slider no breaks")
+				}
+				hiterrors = append(hiterrors, 0)
+				objectResults = append(objectResults, ObjectResult{o.GetBasicData().StartPos, o.GetBasicData().JudgeTime, sliderhitresult, isBreak})
+			}
+			// note
+			if o, ok := obj.(*objects.Circle); ok {
+				// 寻找最近的Key
+				// 啊对对对
+				keyhitresult := Hit300
+				isBreak := false
+				count300 += 1
+				nowcombo += 1
+				totalhits = append(totalhits, 300)
+				maxcombo = int(math.Max(float64(maxcombo), float64(nowcombo)))
+				hiterrors = append(hiterrors, 0)
+				objectResults = append(objectResults, ObjectResult{o.GetBasicData().StartPos, o.GetBasicData().JudgeTime, keyhitresult, isBreak})
+			}
+			// 转盘
+			if o, ok := obj.(*objects.Spinner); ok {
+				//log.Println("Spinner! skip!", k+1, o.GetBasicData())
+				count300 += 1
+				nowcombo += 1
+				totalhits = append(totalhits, 300)
+				maxcombo = int(math.Max(float64(maxcombo), float64(nowcombo)))
+				objectResults = append(objectResults, ObjectResult{o.GetBasicData().StartPos, o.GetBasicData().JudgeTime, Hit300, false})
+			}
+		}
+		// 判定修正
+		err := shouldfixError(k+1, errors)
+		if err != nil {
+			// 进行修正
+			objectResults, count300, count100, count50, countMiss, maxcombo, nowcombo, totalhits = fixError(*err, objectResults, count300, count100, count50, countMiss, maxcombo, nowcombo, totalhits)
+		}
+		ur := calculateUnstableRate(hiterrors)
+		if math.IsNaN(ur) {
+			ur = 0
+		}
+		tmptotalresult := TotalResult{uint16(count300),
+			uint16(count100),
+			uint16(count50),
+			uint16(countMiss),
+			uint16(maxcombo),
+			mods,
+			score.CalculateAccuracy(totalhits),
+			score.CalculateRank(totalhits, mods),
+			oppai.PPv2{},
+			ur}
+		//tmptotalresult.PP = calculatePP(mapname, tmptotalresult)
+		tmptotalresult.PP = calculatePPbyNum(mapname, tmptotalresult, k+1)
+		totalResults = append(totalResults, tmptotalresult)
+		//log.Println("result", tmptotalresult)
+		//log.Println("Now Max Combo:", maxcombo)
+		//log.Println("Acc:", score.CalculateAccuracy(totalhits))
+		//log.Println("Unstable Rate:", calculateUnstableRate(hiterrors))
+	}
+
+	log.Println("Count 300:", count300)
+	log.Println("Count 100:", count100)
+	log.Println("Count 50:", count50)
+	log.Println("Count Miss:", countMiss)
+	log.Println("Max Combo:", maxcombo)
+	log.Println("Acc:", totalResults[len(totalResults)-1].Acc)
+	log.Println("PP:", totalResults[len(totalResults)-1].PP.Total)
+	log.Println("UR:", totalResults[len(totalResults)-1].UR)
+
+	// CS修正
+	sort.Float64s(CSerrors)
+	CSoffset = NO_USE_CS_OFFSET
+
+	if settings.VSplayer.ReplayandCache.ReplayDebug {
+		// 分析情况和replay记录情况对比检查
+		allRight = true
+	}
+
+	return objectResults, totalResults, allRight, CSoffset
+}
+
 // 定位Key放下的位置
 func findRelease(keyindex int, starttime int64, r []*rplpa.ReplayData, keysoccupied []bool, sametimecheck bool) (int, int64, []bool) {
 	keypress := r[keyindex].KeyPressed

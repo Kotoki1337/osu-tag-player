@@ -24,6 +24,7 @@ const MOD_HD = 8
 const MOD_HR = 16
 const MOD_SD = 32
 const MOD_DT = 64
+const MOD_RX = 128
 const MOD_HT = 256
 const MOD_NC = 512
 const MOD_FL = 1024

@@ -396,7 +396,10 @@ func NewPlayer(beatMap *beatmap.BeatMap, win *glfw.Window, loadwords []font.Word
 				}
 				//------------------------------------
 				t1 := time.Now()
-				objectResult, totalResult, _, _ := hitjudge.ParseHits(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+				objectResult, totalResult, _, _ := hitjudge.ParseHitsPseudo(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+				if !settings.TAGREP {
+					objectResult, totalResult, _, _ = hitjudge.ParseHits(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+				}
 				if !settings.VSplayer.ReplayandCache.ReplayDebug {
 					configurePlayer(player, i, rep, objectResult, totalResult)
 					resultcache.CacheResult(objectResult, totalResult, rep)
@@ -427,7 +430,10 @@ func NewPlayer(beatMap *beatmap.BeatMap, win *glfw.Window, loadwords []font.Word
 			}
 			//------------------------------------
 			t1 := time.Now()
-			objectResult, totalResult, allright, _ := hitjudge.ParseHits(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+			objectResult, totalResult, allright, _ := hitjudge.ParseHitsPseudo(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+			if !settings.TAGREP {
+				objectResult, totalResult, allright, _ = hitjudge.ParseHits(settings.General.OsuSongsDir+beatMap.Dir+"/"+beatMap.File, rep, errs, NO_USE_CS_OFFSET)
+			}
 			if !settings.VSplayer.ReplayandCache.ReplayDebug {
 				configurePlayer(player, i, rep, objectResult, totalResult)
 				loadwords = loadwords[:len(loadwords)-1]
@@ -618,11 +624,15 @@ func NewPlayer(beatMap *beatmap.BeatMap, win *glfw.Window, loadwords []font.Word
 		player.rankbaseX = player.accbaseX + 8.375*settings.VSplayer.PlayerInfoUI.BaseSize
 		player.ppurbaseX = player.rankbaseX + 1.625*settings.VSplayer.PlayerInfoUI.BaseSize
 	}
-	if settings.VSplayer.PlayerInfoUI.ShowPPAndURRank {
-		player.ppurrankbaseX = player.ppurbaseX + 9.125*settings.VSplayer.PlayerInfoUI.BaseSize
-		player.playerbaseX = player.ppurrankbaseX + 4.5*settings.VSplayer.PlayerInfoUI.BaseSize
+	if settings.TAGREP {
+		player.playerbaseX = player.accbaseX
 	} else {
-		player.playerbaseX = player.ppurbaseX + 9*settings.VSplayer.PlayerInfoUI.BaseSize
+		if settings.VSplayer.PlayerInfoUI.ShowPPAndURRank {
+			player.ppurrankbaseX = player.ppurbaseX + 9.125*settings.VSplayer.PlayerInfoUI.BaseSize
+			player.playerbaseX = player.ppurrankbaseX + 4.5*settings.VSplayer.PlayerInfoUI.BaseSize
+		} else {
+			player.playerbaseX = player.ppurbaseX + 9*settings.VSplayer.PlayerInfoUI.BaseSize
+		}
 	}
 	player.keybaseY = settings.VSplayer.PlayerInfoUI.BaseY
 	player.fontbaseY = settings.VSplayer.PlayerInfoUI.BaseY - 0.75*settings.VSplayer.PlayerInfoUI.BaseSize
@@ -1320,6 +1330,9 @@ func (pl *Player) Draw(_ float64) {
 		if pl.controller[k].GetMods()&MOD_SO > 0 {
 			mods += "SO"
 		}
+		if pl.controller[k].GetMods()&MOD_RX > 0 {
+			mods += "RX"
+		}
 		if mods != "+" {
 			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
 			lastPos[k] = pl.font.DrawAndGetLastPosition(pl.batch, lastPos[k]+pl.modoffset, fontY-gapY, pl.fontsize, mods)
@@ -1404,187 +1417,189 @@ func (pl *Player) Draw(_ float64) {
 			misscolors[k] = misscolors[k][lastIllegalIndex:]
 			misscolornums[k] = len(misscolors[k])
 		}
-		if !settings.VSplayer.PlayerInfoUI.ShowRealTimePP {
-			if len(pl.controller[k].GetHitResult()) > 0 {
-				pl.controller[k].SetPP(pl.controller[k].GetTotalResult()[0].PP.Total)
-			} else {
-				pl.controller[k].SetPP(pl.lastPP[k])
-			}
-		} else {
-			// 显示每帧实时pp变化
-			if len(pl.controller[k].GetHitResult()) > 0 {
-				pl.controller[k].SetPP(score.CalculateRealtimeValue(
-					pl.lastb4PP[k],
-					pl.lastPP[k],
-					pl.lastPPTime[k],
-					pl.controller[k].GetHitResult()[0].JudgeTime,
-					pl.progressMsF))
-			} else {
-				pl.controller[k].SetPP(score.CalculateRealtimeValue(
-					pl.lastb4PP[k],
-					pl.lastPP[k],
-					pl.lastPPTime[k],
-					pl.lastPPTime[k]+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
-					pl.progressMsF))
-			}
-		}
-		if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-			// 显示每帧实时ur变化
-			if len(pl.controller[k].GetHitResult()) > 0 {
-				pl.controller[k].SetUR(score.CalculateRealtimeValue(
-					pl.lastb4UR[k],
-					pl.lastUR[k],
-					pl.lastURTime[k],
-					pl.controller[k].GetHitResult()[0].JudgeTime,
-					pl.progressMsF))
-			} else {
-				pl.controller[k].SetUR(score.CalculateRealtimeValue(
-					pl.lastb4UR[k],
-					pl.lastUR[k],
-					pl.lastURTime[k],
-					pl.lastURTime[k]+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
-					pl.progressMsF))
-			}
-		}
-		// 如果现在时间大于第一个result的时间，渲染这个result，并在渲染一定时间后弹出
-		if len(pl.controller[k].GetHitResult()) != 0 {
-			if pl.progressMs > pl.controller[k].GetHitResult()[0].JudgeTime {
-				judge := *render.Hit300
-				pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-				switch pl.controller[k].GetHitResult()[0].Result {
-				case hitjudge.Hit300:
-					pl.batch.SetColor(1, 1, 1, 0)
-					break
-				case hitjudge.Hit100:
-					judge = *render.Hit100
-					break
-				case hitjudge.Hit50:
-					judge = *render.Hit50
-					break
-				case hitjudge.HitMiss:
-					judge = *render.Hit0
-					break
+		if !settings.TAGREP {
+			if !settings.VSplayer.PlayerInfoUI.ShowRealTimePP {
+				if len(pl.controller[k].GetHitResult()) > 0 {
+					pl.controller[k].SetPP(pl.controller[k].GetTotalResult()[0].PP.Total)
+				} else {
+					pl.controller[k].SetPP(pl.lastPP[k])
 				}
-				if pl.controller[k].GetHitResult()[0].IsBreak {
-					// 断连后设置不显示
-					if pl.controller[k].GetIsShow() {
-						pl.controller[k].SetIsShow(false)
-						// 保存消失时间、消失位置
-						pl.controller[k].SetDishowTime(pl.progressMsF)
-						trueJudgePos := pl.controller[k].GetHitResult()[0].JudgePos
-						// 如果是HR且图整体未开HR，上下翻转
-						if !settings.VSplayer.Mods.EnableHR && pl.controller[k].GetMods()&MOD_HR > 0 {
-							trueJudgePos.Y = PLAYFIELD_HEIGHT - trueJudgePos.Y
-						}
-						if pl.lastDishowPos == defaultPos {
-							pl.lastDishowPos = trueJudgePos
-						} else {
-							if pl.lastDishowPos == trueJudgePos {
-								pl.SameRate += 1
-							} else {
-								pl.SameRate = 0
+			} else {
+				// 显示每帧实时pp变化
+				if len(pl.controller[k].GetHitResult()) > 0 {
+					pl.controller[k].SetPP(score.CalculateRealtimeValue(
+						pl.lastb4PP[k],
+						pl.lastPP[k],
+						pl.lastPPTime[k],
+						pl.controller[k].GetHitResult()[0].JudgeTime,
+						pl.progressMsF))
+				} else {
+					pl.controller[k].SetPP(score.CalculateRealtimeValue(
+						pl.lastb4PP[k],
+						pl.lastPP[k],
+						pl.lastPPTime[k],
+						pl.lastPPTime[k]+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+						pl.progressMsF))
+				}
+			}
+			if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+				// 显示每帧实时ur变化
+				if len(pl.controller[k].GetHitResult()) > 0 {
+					pl.controller[k].SetUR(score.CalculateRealtimeValue(
+						pl.lastb4UR[k],
+						pl.lastUR[k],
+						pl.lastURTime[k],
+						pl.controller[k].GetHitResult()[0].JudgeTime,
+						pl.progressMsF))
+				} else {
+					pl.controller[k].SetUR(score.CalculateRealtimeValue(
+						pl.lastb4UR[k],
+						pl.lastUR[k],
+						pl.lastURTime[k],
+						pl.lastURTime[k]+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+						pl.progressMsF))
+				}
+			}
+			// 如果现在时间大于第一个result的时间，渲染这个result，并在渲染一定时间后弹出
+			if len(pl.controller[k].GetHitResult()) != 0 {
+				if pl.progressMs > pl.controller[k].GetHitResult()[0].JudgeTime {
+					judge := *render.Hit300
+					pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
+					switch pl.controller[k].GetHitResult()[0].Result {
+					case hitjudge.Hit300:
+						pl.batch.SetColor(1, 1, 1, 0)
+						break
+					case hitjudge.Hit100:
+						judge = *render.Hit100
+						break
+					case hitjudge.Hit50:
+						judge = *render.Hit50
+						break
+					case hitjudge.HitMiss:
+						judge = *render.Hit0
+						break
+					}
+					if pl.controller[k].GetHitResult()[0].IsBreak {
+						// 断连后设置不显示
+						if pl.controller[k].GetIsShow() {
+							pl.controller[k].SetIsShow(false)
+							// 保存消失时间、消失位置
+							pl.controller[k].SetDishowTime(pl.progressMsF)
+							trueJudgePos := pl.controller[k].GetHitResult()[0].JudgePos
+							// 如果是HR且图整体未开HR，上下翻转
+							if !settings.VSplayer.Mods.EnableHR && pl.controller[k].GetMods()&MOD_HR > 0 {
+								trueJudgePos.Y = PLAYFIELD_HEIGHT - trueJudgePos.Y
 							}
-							pl.lastDishowPos = trueJudgePos
-						}
-						pl.controller[k].SetDishowPos(trueJudgePos, pl.SameRate)
-					}
-				}
-				if pl.controller[k].GetHitResult()[0].Result == hitjudge.HitMiss {
-					// 检查是否已经录入
-					if pl.controller[k].IsInMiss(pl.controller[k].GetHitResult()[0].JudgeTime) {
-						// 保存miss时间、miss真实判断时间、miss位置
-						trueJudgePos := pl.controller[k].GetHitResult()[0].JudgePos
-						// 如果是HR且图整体未开HR，上下翻转
-						if !settings.VSplayer.Mods.EnableHR && pl.controller[k].GetMods()&MOD_HR > 0 {
-							trueJudgePos.Y = PLAYFIELD_HEIGHT - trueJudgePos.Y
-						}
-						if pl.lastMissPos == defaultPos {
-							pl.lastMissPos = trueJudgePos
-						} else {
-							if pl.lastMissPos == trueJudgePos {
-								pl.SameMissRate += 1
+							if pl.lastDishowPos == defaultPos {
+								pl.lastDishowPos = trueJudgePos
 							} else {
-								pl.SameMissRate = 0
+								if pl.lastDishowPos == trueJudgePos {
+									pl.SameRate += 1
+								} else {
+									pl.SameRate = 0
+								}
+								pl.lastDishowPos = trueJudgePos
 							}
-							pl.lastMissPos = trueJudgePos
+							pl.controller[k].SetDishowPos(trueJudgePos, pl.SameRate)
 						}
-						pl.controller[k].AddMissInfo(pl.progressMsF, pl.controller[k].GetHitResult()[0].JudgeTime, trueJudgePos, pl.SameMissRate)
 					}
-				}
-				judgeY := pl.hitbaseY - pl.lineoffset*float64(linecount)
-				// 下移半行
-				if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-					judgeY -= pl.lineoffset / 2
-				}
-				pl.batch.SetTranslation(bmath.NewVec2d(lastPos[k]+pl.hitoffset, judgeY-gapY))
-				pl.batch.SetScale(2.75*settings.VSplayer.PlayerInfoUI.BaseSize, settings.VSplayer.PlayerInfoUI.BaseSize)
-				pl.batch.DrawUnit(judge)
-				// 渲染时间结束，弹出
-				if pl.progressMs > pl.controller[k].GetHitResult()[0].JudgeTime+settings.VSplayer.PlayerFieldUI.HitFadeTime {
-					// 设置acc、rank和pp
-					pl.controller[k].SetAcc(pl.controller[k].GetTotalResult()[0].Acc)
-					switch pl.controller[k].GetTotalResult()[0].Rank {
-					case score.SSH:
-						pl.controller[k].SetRank(*render.RankXH)
-						break
-					case score.SH:
-						pl.controller[k].SetRank(*render.RankSH)
-						break
-					case score.SS:
-						pl.controller[k].SetRank(*render.RankX)
-						break
-					case score.S:
-						pl.controller[k].SetRank(*render.RankS)
-						break
-					case score.A:
-						pl.controller[k].SetRank(*render.RankA)
-						break
-					case score.B:
-						pl.controller[k].SetRank(*render.RankB)
-						break
-					case score.C:
-						pl.controller[k].SetRank(*render.RankC)
-						break
-					case score.D:
-						pl.controller[k].SetRank(*render.RankD)
-						break
+					if pl.controller[k].GetHitResult()[0].Result == hitjudge.HitMiss {
+						// 检查是否已经录入
+						if pl.controller[k].IsInMiss(pl.controller[k].GetHitResult()[0].JudgeTime) {
+							// 保存miss时间、miss真实判断时间、miss位置
+							trueJudgePos := pl.controller[k].GetHitResult()[0].JudgePos
+							// 如果是HR且图整体未开HR，上下翻转
+							if !settings.VSplayer.Mods.EnableHR && pl.controller[k].GetMods()&MOD_HR > 0 {
+								trueJudgePos.Y = PLAYFIELD_HEIGHT - trueJudgePos.Y
+							}
+							if pl.lastMissPos == defaultPos {
+								pl.lastMissPos = trueJudgePos
+							} else {
+								if pl.lastMissPos == trueJudgePos {
+									pl.SameMissRate += 1
+								} else {
+									pl.SameMissRate = 0
+								}
+								pl.lastMissPos = trueJudgePos
+							}
+							pl.controller[k].AddMissInfo(pl.progressMsF, pl.controller[k].GetHitResult()[0].JudgeTime, trueJudgePos, pl.SameMissRate)
+						}
 					}
-					if settings.VSplayer.PlayerInfoUI.ShowRealTimePP {
-						pl.lastPPTime[k] = pl.controller[k].GetHitResult()[0].JudgeTime
-					}
-					pl.lastb4PP[k] = pl.lastPP[k]
-					pl.lastPP[k] = pl.controller[k].GetTotalResult()[0].PP.Total
+					judgeY := pl.hitbaseY - pl.lineoffset*float64(linecount)
+					// 下移半行
 					if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-						pl.lastb4UR[k] = pl.lastUR[k]
-						pl.lastUR[k] = pl.controller[k].GetTotalResult()[0].UR
-						pl.lastURTime[k] = pl.controller[k].GetHitResult()[0].JudgeTime
+						judgeY -= pl.lineoffset / 2
 					}
-					// 弹出
-					pl.controller[k].SetHitResult(pl.controller[k].GetHitResult()[1:])
-					pl.controller[k].SetTotalResult(pl.controller[k].GetTotalResult()[1:])
+					pl.batch.SetTranslation(bmath.NewVec2d(lastPos[k]+pl.hitoffset, judgeY-gapY))
+					pl.batch.SetScale(2.75*settings.VSplayer.PlayerInfoUI.BaseSize, settings.VSplayer.PlayerInfoUI.BaseSize)
+					pl.batch.DrawUnit(judge)
+					// 渲染时间结束，弹出
+					if pl.progressMs > pl.controller[k].GetHitResult()[0].JudgeTime+settings.VSplayer.PlayerFieldUI.HitFadeTime {
+						// 设置acc、rank和pp
+						pl.controller[k].SetAcc(pl.controller[k].GetTotalResult()[0].Acc)
+						switch pl.controller[k].GetTotalResult()[0].Rank {
+						case score.SSH:
+							pl.controller[k].SetRank(*render.RankXH)
+							break
+						case score.SH:
+							pl.controller[k].SetRank(*render.RankSH)
+							break
+						case score.SS:
+							pl.controller[k].SetRank(*render.RankX)
+							break
+						case score.S:
+							pl.controller[k].SetRank(*render.RankS)
+							break
+						case score.A:
+							pl.controller[k].SetRank(*render.RankA)
+							break
+						case score.B:
+							pl.controller[k].SetRank(*render.RankB)
+							break
+						case score.C:
+							pl.controller[k].SetRank(*render.RankC)
+							break
+						case score.D:
+							pl.controller[k].SetRank(*render.RankD)
+							break
+						}
+						if settings.VSplayer.PlayerInfoUI.ShowRealTimePP {
+							pl.lastPPTime[k] = pl.controller[k].GetHitResult()[0].JudgeTime
+						}
+						pl.lastb4PP[k] = pl.lastPP[k]
+						pl.lastPP[k] = pl.controller[k].GetTotalResult()[0].PP.Total
+						if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+							pl.lastb4UR[k] = pl.lastUR[k]
+							pl.lastUR[k] = pl.controller[k].GetTotalResult()[0].UR
+							pl.lastURTime[k] = pl.controller[k].GetHitResult()[0].JudgeTime
+						}
+						// 弹出
+						pl.controller[k].SetHitResult(pl.controller[k].GetHitResult()[1:])
+						pl.controller[k].SetTotalResult(pl.controller[k].GetTotalResult()[1:])
+					}
 				}
 			}
-		}
-		// 渲染acc
-		pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-		pl.font.Draw(pl.batch, pl.accbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetAcc())+"%")
-		// 渲染rank
-		rankY := pl.rankbaseY - pl.lineoffset*float64(linecount)
-		// 下移一行
-		if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-			rankY -= pl.lineoffset
-		}
-		pl.batch.SetTranslation(bmath.NewVec2d(pl.rankbaseX, rankY-gapY))
-		pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-		pl.batch.SetScale(settings.VSplayer.PlayerInfoUI.BaseSize, settings.VSplayer.PlayerInfoUI.BaseSize)
-		pl.batch.DrawUnitC(pl.controller[k].GetRank())
-		// 渲染pp
-		pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-		pl.font.Draw(pl.batch, pl.ppurbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetPP())+" pp")
-		if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-			// 渲染ur
+			// 渲染acc
 			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-			pl.font.Draw(pl.batch, pl.ppurbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetUR())+" ur")
+			pl.font.Draw(pl.batch, pl.accbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetAcc())+"%")
+			// 渲染rank
+			rankY := pl.rankbaseY - pl.lineoffset*float64(linecount)
+			// 下移一行
+			if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+				rankY -= pl.lineoffset
+			}
+			pl.batch.SetTranslation(bmath.NewVec2d(pl.rankbaseX, rankY-gapY))
+			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
+			pl.batch.SetScale(settings.VSplayer.PlayerInfoUI.BaseSize, settings.VSplayer.PlayerInfoUI.BaseSize)
+			pl.batch.DrawUnitC(pl.controller[k].GetRank())
+			// 渲染pp
+			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
+			pl.font.Draw(pl.batch, pl.ppurbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetPP())+" pp")
+			if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+				// 渲染ur
+				pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
+				pl.font.Draw(pl.batch, pl.ppurbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.fontsize, fmt.Sprintf("%.2f", pl.controller[k].GetUR())+" ur")
+			}
 		}
 	}
 	pl.batch.End()
@@ -1596,51 +1611,53 @@ func (pl *Player) Draw(_ float64) {
 	//在pp和ur全部更新一遍后再渲染
 
 	//计算排名
-	if settings.VSplayer.PlayerInfoUI.ShowPPAndURRank {
-		var pps []float64
-		var urs []float64
-		var pprank []int
-		var urrank []int
-		pps = make([]float64, pl.playerCount)
-		for k := 0; k < pl.playerCount; k++ {
-			pps[k] = pl.controller[k].GetPP()
-		}
-		pprank = utils.SortRankHighToLow(pps)
-		if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-			urs = make([]float64, pl.playerCount)
+	if !settings.TAGREP {
+		if settings.VSplayer.PlayerInfoUI.ShowPPAndURRank {
+			var pps []float64
+			var urs []float64
+			var pprank []int
+			var urrank []int
+			pps = make([]float64, pl.playerCount)
 			for k := 0; k < pl.playerCount; k++ {
-				urs[k] = pl.controller[k].GetUR()
+				pps[k] = pl.controller[k].GetPP()
 			}
-			urrank = utils.SortRankLowToHigh(urs)
-		}
-		pl.batch.Begin()
-		pl.batch.SetCamera(pl.scamera.GetProjectionView())
-		for k := 0; k < pl.playerCount; k++ {
-			linecount := k
+			pprank = utils.SortRankHighToLow(pps)
 			if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-				linecount *= 2
+				urs = make([]float64, pl.playerCount)
+				for k := 0; k < pl.playerCount; k++ {
+					urs[k] = pl.controller[k].GetUR()
+				}
+				urrank = utils.SortRankLowToHigh(urs)
 			}
-			gapY := pl.gapsize * float64(k)
-			colornum := (settings.VSplayer.PlayerFieldUI.CursorColorSkipNum * k * len(pl.controller[k].GetCursors())) % pl.playerCount
-			namecolor := colors1[colornum]
-			// 渲染pp排名
-			pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-			if settings.VSplayer.PlayerInfoUI.Rank1Highlight && (pprank[k] == 1) {
-				pl.highlightFont.Draw(pl.batch, pl.ppurrankbaseX, pl.highlightfontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.highlightfontsize, "#"+strconv.Itoa(pprank[k]))
-			} else {
-				pl.font.Draw(pl.batch, pl.ppurrankbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, "#"+strconv.Itoa(pprank[k]))
-			}
-			if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
-				// 渲染ur排名
+			pl.batch.Begin()
+			pl.batch.SetCamera(pl.scamera.GetProjectionView())
+			for k := 0; k < pl.playerCount; k++ {
+				linecount := k
+				if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+					linecount *= 2
+				}
+				gapY := pl.gapsize * float64(k)
+				colornum := (settings.VSplayer.PlayerFieldUI.CursorColorSkipNum * k * len(pl.controller[k].GetCursors())) % pl.playerCount
+				namecolor := colors1[colornum]
+				// 渲染pp排名
 				pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
-				if settings.VSplayer.PlayerInfoUI.Rank1Highlight && (urrank[k] == 1) {
-					pl.highlightFont.Draw(pl.batch, pl.ppurrankbaseX, pl.highlightfontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.highlightfontsize, "#"+strconv.Itoa(urrank[k]))
+				if settings.VSplayer.PlayerInfoUI.Rank1Highlight && (pprank[k] == 1) {
+					pl.highlightFont.Draw(pl.batch, pl.ppurrankbaseX, pl.highlightfontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.highlightfontsize, "#"+strconv.Itoa(pprank[k]))
 				} else {
-					pl.font.Draw(pl.batch, pl.ppurrankbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.fontsize, "#"+strconv.Itoa(urrank[k]))
+					pl.font.Draw(pl.batch, pl.ppurrankbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount)-gapY, pl.fontsize, "#"+strconv.Itoa(pprank[k]))
+				}
+				if settings.VSplayer.PlayerInfoUI.ShowRealTimeUR {
+					// 渲染ur排名
+					pl.batch.SetColor(1, 1, 1, float64(namecolor[3]))
+					if settings.VSplayer.PlayerInfoUI.Rank1Highlight && (urrank[k] == 1) {
+						pl.highlightFont.Draw(pl.batch, pl.ppurrankbaseX, pl.highlightfontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.highlightfontsize, "#"+strconv.Itoa(urrank[k]))
+					} else {
+						pl.font.Draw(pl.batch, pl.ppurrankbaseX, pl.fontbaseY-pl.lineoffset*float64(linecount+1)-gapY, pl.fontsize, "#"+strconv.Itoa(urrank[k]))
+					}
 				}
 			}
+			pl.batch.End()
 		}
-		pl.batch.End()
 	}
 
 	//endregion
@@ -1656,16 +1673,57 @@ func (pl *Player) Draw(_ float64) {
 				pl.objindex += 1
 			}
 		}
+		pp := pl.difficulties[pl.objindex].PP
 		diff := pl.difficulties[pl.objindex].Diff
+		var aimpp float64
+		var speedpp float64
+		var accpp float64
+		var totalpp float64
 		var aim float64
 		var speed float64
 		var total float64
 		if pl.objindex == 0 || pl.progressMs > pl.bMap.HitObjects[len(pl.bMap.HitObjects)-1].GetBasicData().JudgeTime {
+			if pl.objindex == 0 {
+				aimpp = 0.
+				speedpp = 0.
+				accpp = 0.
+				totalpp = 0.
+			} else {
+				aimpp = pp.Aim
+				speedpp = pp.Speed
+				accpp = pp.Acc
+				totalpp = pp.Total
+			}
 			aim = diff.Aim
 			speed = diff.Speed
 			total = diff.Total
 		} else {
+			beforepp := pl.difficulties[pl.objindex-1].PP
 			beforediff := pl.difficulties[pl.objindex-1].Diff
+			aimpp = score.CalculateRealtimeValue(
+				beforepp.Aim,
+				pp.Aim,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			speedpp = score.CalculateRealtimeValue(
+				beforepp.Speed,
+				pp.Speed,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			accpp = score.CalculateRealtimeValue(
+				beforepp.Acc,
+				pp.Acc,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
+			totalpp = score.CalculateRealtimeValue(
+				beforepp.Total,
+				pp.Total,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime,
+				pl.bMap.HitObjects[pl.objindex-1].GetBasicData().JudgeTime+int64(settings.VSplayer.PlayerInfoUI.RealTimePPGap),
+				pl.progressMsF)
 			aim = score.CalculateRealtimeValue(
 				beforediff.Aim,
 				diff.Aim,
@@ -1688,6 +1746,12 @@ func (pl *Player) Draw(_ float64) {
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY, pl.diffbasesize, "Aim Stars : "+fmt.Sprintf("%.4f", aim))
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY, pl.diffbasesize, "Speed Stars : "+fmt.Sprintf("%.4f", speed))
 		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*2, pl.diffbasesize, "Total Stars : "+fmt.Sprintf("%.4f", total))
+
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*4, pl.diffbasesize, "Aim pp : "+fmt.Sprintf("%.4f", aimpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*5, pl.diffbasesize, "Speed pp : "+fmt.Sprintf("%.4f", speedpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*6, pl.diffbasesize, "Acc pp : "+fmt.Sprintf("%.4f", accpp)+" pp")
+		pl.font.Draw(pl.batch, pl.diffbaseX, pl.diffbaseY-pl.diffoffsetY*7, pl.diffbasesize, "Total pp : "+fmt.Sprintf("%.4f", totalpp)+" pp")
+
 		pl.batch.End()
 	}
 
