@@ -2,7 +2,7 @@
 
 This fork branch is only used for **2022 MUG FEST osu! TAG 32 project**
 
-**Hardcode WARNING**
+***\*\*Hardcode WARNING\*\****
 
 I will not continue to maintain this project
 
