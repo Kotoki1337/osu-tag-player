@@ -1,22 +1,22 @@
 {
 	"Version": "v1",
 	"General": {
-		"OsuSongsDir": "song\\"
+		"OsuSongsDir": "G:\\osu-vs-player\\song\\"
 	},
 	"VSplayer": {
 		"PlayerInfo": {
-			"Players": 27,
+			"Players": 32,
 			"SpecifiedPlayers": false,
-			"SpecifiedLine": "6",
-			"SpecifiedColor": "WhiteCat:255,255,255|YakumoYukari:0,0,0"
+			"SpecifiedLine": "",
+			"SpecifiedColor": ""
 		},
 		"PlayerInfoUI": {
-			"BaseSize": 6,
-			"BaseX": 14,
-			"BaseY": 696,
+			"BaseSize": 12,
+			"BaseX": 18,
+			"BaseY": 1037,
 			"ShowMouse1": false,
 			"ShowMouse2": false,
-			"ShowRealTimePP": true,
+			"ShowRealTimePP": false,
 			"RealTimePPGap": 800,
 			"ShowRealTimeUR": false,
 			"ShowPPAndURRank": false,
@@ -25,29 +25,29 @@
 			"LineGapMult": 0
 		},
 		"RecordInfoUI": {
-			"Recorder": "wasupandceacar",
-			"RecordTime": "2022.1.16",
-			"RecordBaseX": 1019,
-			"RecordBaseY": 35,
-			"RecordBaseSize": 18,
+			"Recorder": "Test",
+			"RecordTime": "2021.1.11",
+			"RecordBaseX": 1609,
+			"RecordBaseY": 40,
+			"RecordBaseSize": 22,
 			"RecordAlpha": 0.4
 		},
 		"DiffInfoUI": {
 			"ShowDiffInfo": true,
-			"DiffBaseX": 1049,
-			"DiffBaseY": 678,
-			"DiffBaseSize": 18,
+			"DiffBaseX": 1649,
+			"DiffBaseY": 1035,
+			"DiffBaseSize": 22,
 			"DiffAlpha": 0.8
 		},
 		"PlayerFieldUI": {
 			"HitFadeTime": 200,
-			"CursorColorNum": 25,
-			"CursorColorSkipNum": 13,
+			"CursorColorNum": 32,
+			"CursorColorSkipNum": 1,
 			"ShowHitCircleNumber": true
 		},
 		"MapInfo": {
 			"Title": "Kurikaeshi Hitotsubu",
-			"Difficulty": "Hitotsubu"
+			"Difficulty": "Hitsound"
 		},
 		"Mods": {
 			"EnableDT": false,
@@ -60,12 +60,12 @@
 			"EnableKnockout": false,
 			"ShowTrueMiss": false,
 			"PlayerFadeTime": 1500,
-			"SameTimeOffset": 12,
-			"MissMult": 0.8
+			"SameTimeOffset": 22,
+			"MissMult": 1
 		},
 		"ReplayandCache": {
-			"ReplayDir": "replays\\",
-			"CacheDir": "cache\\",
+			"ReplayDir": "G:\\osu-vs-player\\replays\\",
+			"CacheDir": "G:\\osu-vs-player\\cache\\",
 			"UseCacheSystem": true,
 			"ReplayDebug": false
 		},
@@ -75,22 +75,22 @@
 		},
 		"Skin": {
 			"EnableSkin": true,
-			"SkinDir": "skin\\rafis1\\",
-			"NumberOffset": 30
+			"SkinDir": "G:\\osu-vs-player\\skin\\rafis1\\",
+			"NumberOffset": 6
 		}
 	},
 	"Graphics": {
 		"Width": 1920,
 		"Height": 1080,
-		"WindowWidth": 1280,
-		"WindowHeight": 720,
-		"Fullscreen": false,
+		"WindowWidth": 1920,
+		"WindowHeight": 1080,
+		"Fullscreen": true,
 		"VSync": false,
 		"FPSCap": 1000,
 		"MSAA": 16
 	},
 	"Audio": {
-		"GeneralVolume": 0.5,
+		"GeneralVolume": 0.7,
 		"MusicVolume": 0.5,
 		"SampleVolume": 0.5,
 		"Offset": 0,
@@ -120,7 +120,7 @@
 		"EnableCustomTrailGlowOffset": true,
 		"TrailGlowOffset": -36,
 		"ScaleToCS": false,
-		"CursorSize": 5,
+		"CursorSize": 8,
 		"ScaleToTheBeat": false,
 		"ShowCursorsOnBreaks": true,
 		"BounceOnEdges": false,
@@ -154,8 +154,8 @@
 		"ScaleToTheBeat": false,
 		"SliderLOD": 30,
 		"SliderPathLOD": 50,
-		"SliderSnakeIn": false,
-		"SliderSnakeOut": false,
+		"SliderSnakeIn": true,
+		"SliderSnakeOut": true,
 		"SliderMerge": false,
 		"DrawFollowPoints": true,
 		"WhiteFollowPoints": true,
@@ -187,8 +187,8 @@
 		"BackgroundDimBreaks": 0.1,
 		"BlurEnable": true,
 		"BackgroundInBlur": 0,
-		"BackgroundBlur": 0,
-		"BackgroundBlurBreaks": 0,
+		"BackgroundBlur": 0.6,
+		"BackgroundBlurBreaks": 0.6,
 		"SpectrumInDim": 0,
 		"SpectrumDim": 1,
 		"SpectrumDimBreaks": 0,

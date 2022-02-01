@@ -1196,8 +1196,8 @@ func (pl *Player) Draw(_ float64) {
 	pl.batch.Begin()
 	pl.batch.SetCamera(pl.scamera.GetProjectionView())
 	pl.batch.SetColor(1, 1, 1, settings.VSplayer.RecordInfoUI.RecordAlpha)
-	pl.font.Draw(pl.batch, pl.recordbaseX, pl.recordbaseY, pl.recordbasesize, "Recorded by "+settings.VSplayer.RecordInfoUI.Recorder)
-	pl.font.Draw(pl.batch, pl.recordbaseX, pl.recordbaseY-pl.recordtimeoffsetY, pl.recordbasesize, "Recorded on "+settings.VSplayer.RecordInfoUI.RecordTime)
+	pl.font.Draw(pl.batch, pl.recordbaseX, pl.recordbaseY, pl.recordbasesize, "MUG FEST 2022")
+	// pl.font.Draw(pl.batch, pl.recordbaseX, pl.recordbaseY-pl.recordtimeoffsetY, pl.recordbasesize, "Recorded on "+settings.VSplayer.RecordInfoUI.RecordTime)
 	pl.batch.End()
 
 	//endregion
